@@ -1,5 +1,6 @@
-package hw3;
+package hw;
 
+import hw.dto.FormParamsRequest;
 import org.junit.jupiter.api.Test;
 import io.restassured.http.Method;
 import io.restassured.response.Response;
@@ -51,17 +52,10 @@ public class ClassifyCuisineTest extends AbstractTest{
     @Test
     void ClassifyCuisineForBurgerIngredientList(){
         given().spec(getRequestSpecFormParam())
-                .formParam("title", "Burger")
-                .formParam("ingredientList","\n 1 large beefsteak tomato\n" +
-                        "½ tsps black pepper\n" +
-                        "some canola oil\n" +
-                        "6  split english muffins\n" +
-                        "1½ Tbsps fresh flat-leaf parsley\n" +
-                        "3 pounds ground beef chuck\n" +
-                        "2 tsps kosher salt\n" +
-                        "3 Tbsps salted butter")
+                .formParam("title", FormParamsRequest.burgerTitle)
+                .formParam("ingredientList", FormParamsRequest.burgerIngredientList)
                 .expect()
-                .body("cuisine", equalTo("American"))
+                .body("cuisine", equalTo(FormParamsRequest.burgerCuisine))
                 .when()
                 .request(Method.POST, getBaseUrl()+"recipes/cuisine")
                 .then()

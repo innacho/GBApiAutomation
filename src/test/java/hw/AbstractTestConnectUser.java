@@ -1,5 +1,10 @@
-package hw3;
+package hw;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import hw.dto.AddToShoppingListRequest;
+import hw.dto.ConnectUserRequest;
+import hw.dto.MealPlanItemRequest;
+import hw.dto.MenuItemValue;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.builder.ResponseSpecBuilder;
 import io.restassured.http.ContentType;
@@ -10,6 +15,9 @@ import io.restassured.specification.ResponseSpecification;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+
+import java.time.Instant;
+import java.time.LocalDate;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -48,16 +56,58 @@ public abstract class AbstractTestConnectUser extends AbstractTest{
 
     }
 
+    static String generateConnectUserRequest(){
+        ObjectMapper mapper = new ObjectMapper();
+        ConnectUserRequest connectUserRequest = new ConnectUserRequest();
+        connectUserRequest.setUsername(getProp().getProperty("spoonacularUsername"));
+        connectUserRequest.setFirstName(getProp().getProperty("firstName"));
+        connectUserRequest.setLastName(getProp().getProperty("lastName"));
+        connectUserRequest.setEmail(getProp().getProperty("email"));
+        String body = "";
+        try{
+            body = mapper.writeValueAsString(connectUserRequest);
+        } catch(Exception e){
+            e.printStackTrace();
+        }
+        return body;
+    }
+
+    static String generateMealPlanItemRequest(){
+        ObjectMapper mapper = new ObjectMapper();
+        long now = Instant.now().getEpochSecond();
+        MenuItemValue menuItemValue = new MenuItemValue(378557, 2, "Pizza 73 BBQ Steak Pizza, 9", "png");
+        MealPlanItemRequest mealPlanItemRequest = new MealPlanItemRequest(now, 1, 0, "MENU_ITEM", menuItemValue);
+        String body = "";
+        try{
+            body = mapper.writeValueAsString(mealPlanItemRequest);
+        } catch(Exception e){
+            e.printStackTrace();
+        }
+        return body;
+    }
+
+    static String generateAddToShoppingListRequest(String item, String aisle){
+        ObjectMapper mapper = new ObjectMapper();
+        AddToShoppingListRequest addToShoppingListRequest = new AddToShoppingListRequest(item, aisle);
+        String body = "";
+        try{
+            body = mapper.writeValueAsString(addToShoppingListRequest);
+        } catch(Exception e){
+            e.printStackTrace();
+        }
+        return body;
+    }
+
+    static String generateToday(){
+        LocalDate date = LocalDate.now();
+        return date.toString();
+    }
+
     @BeforeAll
     static void getUsernameAndHash(){
         //calling Connect User to get Username and Hash
         JsonPath body = given().spec(getRequestSpec())
-                .body("{\n"
-                        + " \"username\": \"innaf\",\n"
-                        + " \"firstName\": \"Inna\",\n"
-                        + " \"lastName\": \"Chonka\",\n"
-                        + " \"email\": \"fedorovainna@rambler.ru\",\n"
-                        + "}")
+                .body(generateConnectUserRequest())
                 .when()
                 .request(Method.POST, getBaseUrl()+"users/connect")
                 .then()

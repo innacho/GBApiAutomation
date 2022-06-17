@@ -1,5 +1,6 @@
-package hw3;
+package hw;
 
+import hw.dto.FailureResponse;
 import io.restassured.http.Method;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,16 +16,12 @@ public class ShoppingListDeleteTest extends AbstractTestConnectUser {
     void AddItemToDelete(){
         // step1 : adding item to shopping list to delete
         id = given().spec(getRequestSpecHash())
-                .body("{\n"
-                        + " \"item\": \"baking powder\",\n"
-                        + " \"aisle\": \"Baking\",\n"
-                        + " \"parse\": true \n,"
-                        + "}")
+                .body(generateAddToShoppingListRequest("baking powder","Baking"))
                 .expect()
                 .body("name", equalTo("baking powder"))
                 .when()
                 .request(Method.POST, getBaseUrl()+"mealplanner/{username}/shopping-list/items", getUsername())
-                //            .prettyPeek()
+                .prettyPeek()
                 .then()
                 .spec(getResponseSpec())
                 .extract()
@@ -65,15 +62,18 @@ public class ShoppingListDeleteTest extends AbstractTestConnectUser {
     void DeleteFromShoppingListNonExistentItem(){
         String wrongId = "9";
 
-        given().spec(getRequestSpecHash())
-                .expect()
-                .body("status", equalTo("failure"))
-                .body("message", equalTo("A shopping list item with id "+wrongId+" does not exist"))
+        FailureResponse response = given().spec(getRequestSpecHash())
                 .when()
                 .delete(getBaseUrl() + "mealplanner/{username}/shopping-list/items/" + wrongId, getUsername())
-                //            .prettyPeek()
                 .then()
-                .statusCode(404);
+                .extract()
+                .response()
+                .body()
+                .as(FailureResponse.class);
+
+        assertThat(response.getCode(), equalTo(404));
+        assertThat(response.getStatus(), equalTo("failure"));
+        assertThat(response.getMessage(), equalTo("A shopping list item with id "+wrongId+" does not exist"));
     }
 
     @Test

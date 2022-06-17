@@ -1,4 +1,4 @@
-package hw3;
+package hw;
 
 import org.junit.jupiter.api.Test;
 import io.restassured.http.Method;

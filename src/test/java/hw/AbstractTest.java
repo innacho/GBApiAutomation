@@ -1,4 +1,4 @@
-package hw3;
+package hw;
 
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
@@ -17,7 +17,7 @@ import java.util.Properties;
 
 public abstract class AbstractTest {
 
-    static Properties prop = new Properties();
+    private static Properties prop = new Properties();
     private static InputStream configFile;
     private static String apiKey;
     private static String baseUrl;
@@ -117,4 +117,6 @@ public abstract class AbstractTest {
     public static ResponseSpecification getResponseSpecFormParam() {
         return responseSpecificationFormParam;
     }
+
+    public static Properties getProp() { return prop; }
 }

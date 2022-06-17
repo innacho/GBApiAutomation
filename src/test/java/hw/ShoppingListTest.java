@@ -1,5 +1,6 @@
-package hw3;
+package hw;
 
+import hw.dto.FailureResponse;
 import io.restassured.http.Method;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -17,11 +18,7 @@ public class ShoppingListTest extends AbstractTestConnectUser {
     void AddToShoppingList(String item, String aisle){
         // adding to shopping list
         String id = given().spec(getRequestSpecHash())
-                .body("{\n"
-                        + " \"item\": "+ item +",\n"
-                        + " \"aisle\": "+ aisle +",\n"
-                        + " \"parse\": true \n,"
-                        + "}")
+                .body(generateAddToShoppingListRequest(item,aisle))
                 .expect()
                 .body("name", equalTo(item))
                 .when()
@@ -48,15 +45,19 @@ public class ShoppingListTest extends AbstractTestConnectUser {
 
     @Test
     void AddToShoppingListBadRequest(){
-        given().spec(getRequestSpecHash())
+        FailureResponse response = given().spec(getRequestSpecHash())
                 .queryParam("apiKey", getApiKey()+"12")
-                .expect()
-                .body("message", containsString("Json could not be parsed"))
                 .when()
                 .request(Method.POST, getBaseUrl()+"mealplanner/{username}/shopping-list/items", getUsername())
-               // .prettyPeek()
                 .then()
-                .statusCode(400);
+                .extract()
+                .response()
+                .body()
+                .as(FailureResponse.class);
+
+        assertThat(response.getCode(), equalTo(400));
+        assertThat(response.getStatus(), equalTo("failure"));
+        assertThat(response.getMessage(), containsString("Json could not be parsed"));
     }
 
     @Test
