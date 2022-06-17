@@ -1,5 +1,6 @@
-package hw3;
+package hw;
 
+import hw.dto.FormParamsRequest;
 import org.junit.jupiter.api.Test;
 import io.restassured.http.Method;
 import io.restassured.response.Response;
@@ -8,32 +9,24 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
 
 public class ClassifyCuisineTest extends AbstractTest{
     @Test
     void ClassifyCuisineWithQuery(){
-        given()
-                .queryParam("apiKey",getApiKey())
-                .contentType("application/x-www-form-urlencoded")
+        given().spec(getRequestSpecFormParam())
                 .formParam("title","sushi")
-                .log().all()
                 .expect()
                 .body("cuisine", equalTo("Japanese"))
-                .body("confidence", greaterThan(0.5F))
-                .log().all()
                 .when()
                 .request(Method.POST, getBaseUrl()+"recipes/cuisine")
                 .then()
-                .statusCode(200);
+                .spec(getResponseSpecFormParam());
     }
 
     @Test
     void ClassifyCuisineWithWrongContentTypeHeader(){
-        Response response = given()
-                .queryParam("query","rice")
-                .queryParam("apiKey",getApiKey())
+        Response response = given().spec(getRequestSpecFormParam())
                 .contentType("text")
                 .when()
                 .request(Method.POST, getBaseUrl()+"recipes/cuisine");
@@ -45,58 +38,36 @@ public class ClassifyCuisineTest extends AbstractTest{
 
     @Test
     void ClassifyCuisineForDeLangTitle(){
-        given()
-                .queryParam("apiKey",getApiKey())
+        given().spec(getRequestSpecFormParam())
                 .queryParam("language", "de")
-                .contentType("application/x-www-form-urlencoded")
                 .formParam("title","Burger Kuchen")
-                .log().all()
                 .expect()
                 .body("cuisine", equalTo("American"))
-                .body("confidence", greaterThan(0.5F))
-                .log().all()
                 .when()
                 .request(Method.POST, getBaseUrl()+"recipes/cuisine")
                 .then()
-                .statusCode(200);
+                .spec(getResponseSpecFormParam());
     }
 
     @Test
     void ClassifyCuisineForBurgerIngredientList(){
-        given()
-                .queryParam("apiKey",getApiKey())
-                .contentType("application/x-www-form-urlencoded")
-                .formParam("title", "Burger")
-                .formParam("ingredientList","\n 1 large beefsteak tomato\n" +
-                        "½ tsps black pepper\n" +
-                        "some canola oil\n" +
-                        "6  split english muffins\n" +
-                        "1½ Tbsps fresh flat-leaf parsley\n" +
-                        "3 pounds ground beef chuck\n" +
-                        "2 tsps kosher salt\n" +
-                        "3 Tbsps salted butter")
-                .log().all()
+        given().spec(getRequestSpecFormParam())
+                .formParam("title", FormParamsRequest.burgerTitle)
+                .formParam("ingredientList", FormParamsRequest.burgerIngredientList)
                 .expect()
-                .body("cuisine", equalTo("American"))
-                .body("confidence", greaterThan(0.5F))
-                .log().all()
+                .body("cuisine", equalTo(FormParamsRequest.burgerCuisine))
                 .when()
                 .request(Method.POST, getBaseUrl()+"recipes/cuisine")
                 .then()
-                .statusCode(200);
+                .spec(getResponseSpecFormParam());
     }
 
     @Test
     void ClassifyCuisineWithWrongApiKey(){
-        given()
-                .queryParam("apiKey",getApiKey()+"12")
-                .log().all()
-                .expect()
-                .body("message", containsString("You are not authorized"))
+        given().spec(getRequestSpecNotAuth())
                 .when()
                 .request(Method.POST, getBaseUrl()+"recipes/cuisine")
-                .prettyPeek()
                 .then()
-                .statusCode(401);
+                .spec(getResponseSpecNotAuth());
     }
 }
